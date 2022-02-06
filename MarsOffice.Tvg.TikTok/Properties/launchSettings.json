@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MarsOffice.Tvg.TikTok": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7010"
+    }
+  }
+}
