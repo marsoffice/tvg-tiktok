@@ -83,7 +83,8 @@ namespace MarsOffice.Tvg.TikTok
                     new TikTokUserInfoRequest
                     {
                         access_token = entity.AccessToken,
-                        open_id = entity.AccountId
+                        open_id = entity.AccountId,
+                        fields = new [] { "open_id", "avatar_url", "display_name", "union_id" }
                     }, new JsonSerializerSettings
                     {
                         ContractResolver = new CamelCasePropertyNamesContractResolver()
@@ -94,14 +95,14 @@ namespace MarsOffice.Tvg.TikTok
                 if (userInfoResponse.IsSuccessStatusCode)
                 {
                     var userInfoJson = await userInfoResponse.Content.ReadAsStringAsync();
-                    var userResponse = JsonConvert.DeserializeObject<TikTokUserResponse>(jsonResponse, new JsonSerializerSettings
+                    var userResponse = JsonConvert.DeserializeObject<TikTokUserResponse>(userInfoJson, new JsonSerializerSettings
                     {
                         ContractResolver = new CamelCasePropertyNamesContractResolver(),
                         NullValueHandling = NullValueHandling.Ignore
-                    }).Data;
+                    });
 
-                    entity.Name = userResponse.display_name;
-                    entity.AvatarUrl = userResponse.avatar_url;
+                    entity.Name = userResponse.Data?.User?.display_name;
+                    entity.AvatarUrl = userResponse.Data?.User?.avatar_url;
                 }
                 else
                 {
