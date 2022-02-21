@@ -51,6 +51,8 @@ namespace MarsOffice.Tvg.TikTok
                 }
             }
 
+            log.LogInformation($"Found {allAccounts.Count} potential accounts.");
+
             foreach (var account in allAccounts)
             {
                 try
@@ -58,6 +60,7 @@ namespace MarsOffice.Tvg.TikTok
                     if (account.AccessToken != null && account.AccessTokenExpAt.HasValue && account.AccessTokenExpAt.Value > now
                         && (account.AccessTokenExpAt.Value - now) >= TimeSpan.FromMinutes(75))
                     {
+                        log.LogInformation($"Will skip account {account.AccountId}");
                         continue;
                     }
 
@@ -86,6 +89,8 @@ namespace MarsOffice.Tvg.TikTok
                     var updateOp = TableOperation.Merge(
                         account
                     );
+                    await tikTokAccountsTable.ExecuteAsync(updateOp);
+                    log.LogInformation($"Account {account.AccountId} was refreshed successfully.");
                 }
                 catch (Exception ex)
                 {
