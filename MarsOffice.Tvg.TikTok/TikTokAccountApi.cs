@@ -75,7 +75,18 @@ namespace MarsOffice.Tvg.TikTok
                 entity.AccessTokenExpAt = DateTimeOffset.UtcNow.AddSeconds(objResponse.expires_in);
                 entity.RefreshToken = objResponse.refresh_token;
                 entity.RefreshTokenExpAt = DateTimeOffset.UtcNow.AddSeconds(objResponse.refresh_expires_in);
-                
+
+                var userInfoRequest = new HttpRequestMessage(HttpMethod.Post, $"https://open-api.tiktok.com/user/info/?open_id={entity.AccountId}&access_token={entity.AccessToken}");
+                var userInfoResponse = await _httpClient.SendAsync(userInfoRequest);
+                userInfoResponse.EnsureSuccessStatusCode();
+                var userInfoJson = await userInfoResponse.Content.ReadAsStringAsync();
+                var userResponse = JsonConvert.DeserializeObject<TikTokUserResponse>(jsonResponse, new JsonSerializerSettings
+                {
+                    ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                    NullValueHandling = NullValueHandling.Ignore
+                }).Data;
+
+                entity.Username = userResponse.display_name;
 
                 var op = TableOperation.InsertOrMerge(entity);
                 await tikTokAccountsTable.ExecuteAsync(op);
