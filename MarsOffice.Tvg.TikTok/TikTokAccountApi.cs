@@ -58,16 +58,17 @@ namespace MarsOffice.Tvg.TikTok
                 entity.ETag = "*";
                 entity.PartitionKey = entity.UserId;
 
-                var request = new HttpRequestMessage(HttpMethod.Post, 
+                var request = new HttpRequestMessage(HttpMethod.Post,
                     $"https://open-api.tiktok.com/oauth/access_token/?client_key={_config["ttclientkey"]}&client_secret={_config["ttclientsecret"]}&code={payload.AuthCode}&grant_type=authorization_code");
                 var getAuthTokenResponse = await _httpClient.SendAsync(request);
                 getAuthTokenResponse.EnsureSuccessStatusCode();
                 var jsonResponse = await getAuthTokenResponse.Content.ReadAsStringAsync();
-                var objResponse = JsonConvert.DeserializeObject<TikTokAuthResponse>(jsonResponse, new JsonSerializerSettings {
+                var objResponse = JsonConvert.DeserializeObject<TikTokAuthResponse>(jsonResponse, new JsonSerializerSettings
+                {
                     ContractResolver = new CamelCasePropertyNamesContractResolver(),
                     NullValueHandling = NullValueHandling.Ignore
                 }).Data;
-            
+
                 entity.LastRefreshDate = DateTimeOffset.UtcNow;
                 entity.AccountId = objResponse.open_id;
                 entity.RowKey = entity.AccountId;
@@ -76,19 +77,36 @@ namespace MarsOffice.Tvg.TikTok
                 entity.RefreshToken = objResponse.refresh_token;
                 entity.RefreshTokenExpAt = DateTimeOffset.UtcNow.AddSeconds(objResponse.refresh_expires_in);
 
-                var userInfoRequest = new HttpRequestMessage(HttpMethod.Post, $"https://open-api.tiktok.com/user/info/?open_id={entity.AccountId}&access_token={entity.AccessToken}");
-                var userInfoResponse = await _httpClient.SendAsync(userInfoRequest);
-                userInfoResponse.EnsureSuccessStatusCode();
-                var userInfoJson = await userInfoResponse.Content.ReadAsStringAsync();
-                var userResponse = JsonConvert.DeserializeObject<TikTokUserResponse>(jsonResponse, new JsonSerializerSettings
+                var userInfoRequest = new HttpRequestMessage(HttpMethod.Post, $"https://open-api.tiktok.com/user/info/")
                 {
-                    ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                    NullValueHandling = NullValueHandling.Ignore
-                }).Data;
+                    Content = new StringContent(JsonConvert.SerializeObject(
+                    new TikTokUserInfoRequest
+                    {
+                        access_token = entity.AccessToken,
+                        open_id = entity.AccountId
+                    }, new JsonSerializerSettings
+                    {
+                        ContractResolver = new CamelCasePropertyNamesContractResolver()
+                    }
+                ))
+                };
+                var userInfoResponse = await _httpClient.SendAsync(userInfoRequest);
+                if (userInfoResponse.IsSuccessStatusCode)
+                {
+                    var userInfoJson = await userInfoResponse.Content.ReadAsStringAsync();
+                    var userResponse = JsonConvert.DeserializeObject<TikTokUserResponse>(jsonResponse, new JsonSerializerSettings
+                    {
+                        ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                        NullValueHandling = NullValueHandling.Ignore
+                    }).Data;
 
-                entity.Name = userResponse.display_name;
-                entity.AvatarUrl = userResponse.avatar_url;
-
+                    entity.Name = userResponse.display_name;
+                    entity.AvatarUrl = userResponse.avatar_url;
+                }
+                else
+                {
+                    entity.Name = "unknown";
+                }
                 var op = TableOperation.InsertOrMerge(entity);
                 await tikTokAccountsTable.ExecuteAsync(op);
                 return new OkObjectResult(payload);
@@ -119,13 +137,15 @@ namespace MarsOffice.Tvg.TikTok
 
                 var hasData = true;
                 TableContinuationToken tct = null;
-                while (hasData) {
+                while (hasData)
+                {
                     var tableResponse = await tikTokAccountsTable.ExecuteQuerySegmentedAsync(query, tct);
                     accounts.AddRange(
                         _mapper.Map<IEnumerable<TikTokAccount>>(tableResponse)
                     );
                     tct = tableResponse.ContinuationToken;
-                    if (tct == null) {
+                    if (tct == null)
+                    {
                         hasData = false;
                     }
                 }
@@ -149,7 +169,8 @@ namespace MarsOffice.Tvg.TikTok
             {
                 var principal = MarsOfficePrincipal.Parse(req);
                 var userId = principal.FindFirst("id").Value;
-                var op = TableOperation.Delete(new TikTokAccountEntity {
+                var op = TableOperation.Delete(new TikTokAccountEntity
+                {
                     PartitionKey = userId,
                     RowKey = req.RouteValues["accountId"].ToString(),
                     ETag = "*"
