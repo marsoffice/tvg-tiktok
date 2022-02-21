@@ -108,14 +108,12 @@ namespace MarsOffice.Tvg.TikTok
                 {
                     try
                     {
-                        var stream = await blobRef.OpenReadAsync();
-                        var sc = new StreamContent(
-                            stream
-                        );
+                        var bytes = new byte[blobRef.Properties.Length];
+                        await blobRef.DownloadToByteArrayAsync(bytes, 0);
                         var mfdc = new MultipartFormDataContent
                         {
                             {
-                                sc,
+                                new ByteArrayContent(bytes),
                                 "video"
                             }
                         };
@@ -124,6 +122,8 @@ namespace MarsOffice.Tvg.TikTok
                         {
                             Content = mfdc
                         };
+                        httpRequest.Headers.TryAddWithoutValidation("User-Agent", "PostmanRuntime/7.29.0");
+
                         var uploadResponse = await _httpClient.SendAsync(httpRequest);
                         uploadResponse.EnsureSuccessStatusCode();
                     }
