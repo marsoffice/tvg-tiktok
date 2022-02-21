@@ -124,6 +124,11 @@ namespace MarsOffice.Tvg.TikTok
 
                         var uploadResponse = await _httpClient.SendAsync(httpRequest);
                         uploadResponse.EnsureSuccessStatusCode();
+                        var jsonContent = await uploadResponse.Content.ReadAsStringAsync();
+                        var response = JsonConvert.DeserializeObject<TikTokUploadResponse>(jsonContent, new JsonSerializerSettings { 
+                            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                            NullValueHandling = NullValueHandling.Ignore
+                        });
                     }
                     catch (Exception ex)
                     {
