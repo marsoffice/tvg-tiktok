@@ -108,7 +108,6 @@ namespace MarsOffice.Tvg.TikTok
                 {
                     try
                     {
-                        using var ms = new MemoryStream();
                         var stream = await blobRef.OpenReadAsync();
                         var sc = new StreamContent(
                             stream
@@ -131,6 +130,7 @@ namespace MarsOffice.Tvg.TikTok
                     catch (Exception ex)
                     {
                         log.LogError(ex, "Video upload failed for account " + account.AccountId);
+                        throw new Exception("STOP: TikTok upload failed for " + account.AccountId);
                     }
                 }
 
@@ -147,7 +147,7 @@ namespace MarsOffice.Tvg.TikTok
             catch (Exception e)
             {
                 log.LogError(e, "Exception occured in function");
-                if (message.DequeueCount >= 5)
+                if (message.DequeueCount >= 5 || e.Message.Contains("STOP"))
                 {
                     await videoUploadResultQueue.AddAsync(new VideoUploadResult
                     {
