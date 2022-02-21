@@ -151,7 +151,7 @@ namespace MarsOffice.Tvg.TikTok
                 {
                     await videoUploadResultQueue.AddAsync(new VideoUploadResult
                     {
-                        Error = e.Message,
+                        Error = "TikTokService: " + e.Message,
                         Success = false,
                         JobId = request?.JobId,
                         UserId = request?.UserId,
