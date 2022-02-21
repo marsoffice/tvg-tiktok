@@ -139,7 +139,8 @@ namespace MarsOffice.Tvg.TikTok
                     Success = true,
                     JobId = request?.JobId,
                     UserId = request?.UserId,
-                    VideoId = request?.VideoId
+                    VideoId = request?.VideoId,
+                    UserEmail = request?.UserEmail
                 });
                 await videoUploadResultQueue.FlushAsync();
             }
@@ -154,7 +155,8 @@ namespace MarsOffice.Tvg.TikTok
                         Success = false,
                         JobId = request?.JobId,
                         UserId = request?.UserId,
-                        VideoId = request?.VideoId
+                        VideoId = request?.VideoId,
+                        UserEmail = request?.UserEmail
                     });
                     await videoUploadResultQueue.FlushAsync();
                 }
