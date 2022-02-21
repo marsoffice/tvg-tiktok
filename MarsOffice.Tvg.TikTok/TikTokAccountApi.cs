@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -22,11 +23,13 @@ namespace MarsOffice.Tvg.TikTok
     {
         private readonly IMapper _mapper;
         private readonly HttpClient _httpClient;
+        private readonly IConfiguration _config;
 
-        public TikTokAccountApi(IMapper mapper, IHttpClientFactory httpClientFactory)
+        public TikTokAccountApi(IMapper mapper, IHttpClientFactory httpClientFactory, IConfiguration config)
         {
             _mapper = mapper;
             _httpClient = httpClientFactory.CreateClient();
+            _config = config;
         }
 
         [FunctionName("AddAccount")]
@@ -54,9 +57,24 @@ namespace MarsOffice.Tvg.TikTok
                 var entity = _mapper.Map<TikTokAccountEntity>(payload);
                 entity.ETag = "*";
                 entity.PartitionKey = entity.UserId;
-                entity.RowKey = entity.AuthCode;
 
-                // TODO
+                var request = new HttpRequestMessage(HttpMethod.Post, 
+                    $"https://open-api.tiktok.com/oauth/access_token/?client_key={_config["ttclientkey"]}&client_secret={_config["ttclientsecret"]}&code={payload.AuthCode}&grant_type=authorization_code");
+                var getAuthTokenResponse = await _httpClient.SendAsync(request);
+                getAuthTokenResponse.EnsureSuccessStatusCode();
+                var jsonResponse = await getAuthTokenResponse.Content.ReadAsStringAsync();
+                var objResponse = JsonConvert.DeserializeObject<TikTokAuthResponse>(jsonResponse, new JsonSerializerSettings {
+                    ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                    NullValueHandling = NullValueHandling.Ignore
+                });
+
+                entity.AccountId = objResponse.open_id;
+                entity.RowKey = entity.AccountId;
+                entity.AccessToken = objResponse.access_token;
+                entity.AccessTokenExp = objResponse.expires_in;
+                entity.RefreshToken = objResponse.refresh_token;
+                entity.RefreshTokenExp = objResponse.refresh_expires_in;
+                entity.LastRefreshDate = DateTimeOffset.UtcNow;
 
                 var op = TableOperation.InsertOrMerge(entity);
                 await tikTokAccountsTable.ExecuteAsync(op);
@@ -109,7 +127,7 @@ namespace MarsOffice.Tvg.TikTok
 
         [FunctionName("DeleteAccount")]
         public async Task<IActionResult> DeleteAccount(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "api/tiktok/deleteAccount/{authCode}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "api/tiktok/deleteAccount/{accountId}")] HttpRequest req,
             [Table("TikTokAccounts", Connection = "localsaconnectionstring")] CloudTable tikTokAccountsTable,
             ILogger log
             )
@@ -120,7 +138,7 @@ namespace MarsOffice.Tvg.TikTok
                 var userId = principal.FindFirst("id").Value;
                 var op = TableOperation.Delete(new TikTokAccountEntity {
                     PartitionKey = userId,
-                    RowKey = req.RouteValues["authCode"].ToString(),
+                    RowKey = req.RouteValues["accountId"].ToString(),
                     ETag = "*"
                 });
                 await tikTokAccountsTable.ExecuteAsync(op);
