@@ -66,7 +66,7 @@ namespace MarsOffice.Tvg.TikTok
                 var objResponse = JsonConvert.DeserializeObject<TikTokAuthResponse>(jsonResponse, new JsonSerializerSettings {
                     ContractResolver = new CamelCasePropertyNamesContractResolver(),
                     NullValueHandling = NullValueHandling.Ignore
-                });
+                }).Data;
 
                 entity.AccountId = objResponse.open_id;
                 entity.RowKey = entity.AccountId;
