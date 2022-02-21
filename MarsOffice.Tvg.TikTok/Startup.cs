@@ -21,7 +21,11 @@ namespace MarsOffice.Tvg.TikTok
 
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            
+            builder.Services.AddAutoMapper((svc, cfg) =>
+            {
+                cfg.AllowNullCollections = true;
+            }, typeof(Startup).Assembly);
+            builder.Services.AddHttpClient();
         }
     }
 }
