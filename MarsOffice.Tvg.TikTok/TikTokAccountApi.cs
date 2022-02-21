@@ -84,7 +84,7 @@ namespace MarsOffice.Tvg.TikTok
                     {
                         access_token = entity.AccessToken,
                         open_id = entity.AccountId,
-                        fields = new [] { "open_id", "avatar_url", "display_name", "union_id" }
+                        fields = new[] { "open_id", "avatar_url", "display_name", "union_id" }
                     }, new JsonSerializerSettings
                     {
                         ContractResolver = new CamelCasePropertyNamesContractResolver()
