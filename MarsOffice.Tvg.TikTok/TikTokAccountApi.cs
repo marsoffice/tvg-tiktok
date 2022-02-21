@@ -68,7 +68,10 @@ namespace MarsOffice.Tvg.TikTok
                     ContractResolver = new CamelCasePropertyNamesContractResolver(),
                     NullValueHandling = NullValueHandling.Ignore
                 }).Data;
-
+                if (objResponse.open_id == null)
+                {
+                    throw new Exception("Invalid account ID retrieved, full response: " + jsonResponse);
+                }
                 entity.LastRefreshDate = DateTimeOffset.UtcNow;
                 entity.AccountId = objResponse.open_id;
                 entity.RowKey = entity.AccountId;
