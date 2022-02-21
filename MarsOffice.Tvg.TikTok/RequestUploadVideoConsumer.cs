@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using MarsOffice.Tvg.TikTok.Abstractions;
 using MarsOffice.Tvg.TikTok.Entities;
@@ -110,13 +111,10 @@ namespace MarsOffice.Tvg.TikTok
                     {
                         var bytes = new byte[blobRef.Properties.Length];
                         await blobRef.DownloadToByteArrayAsync(bytes, 0);
-                        var mfdc = new MultipartFormDataContent
-                        {
-                            {
-                                new ByteArrayContent(bytes),
-                                "video"
-                            }
-                        };
+                        var mfdc = new MultipartFormDataContent();
+                        var byteContent = new ByteArrayContent(bytes);
+                        byteContent.Headers.ContentType = MediaTypeHeaderValue.Parse("video/mp4");
+                        mfdc.Add(byteContent, "video", "video.mp4");
                         var httpRequest = new HttpRequestMessage(HttpMethod.Post,
                             $"https://open-api.tiktok.com/share/video/upload/?open_id={account.AccountId}&access_token={account.AccessToken}")
                         {
