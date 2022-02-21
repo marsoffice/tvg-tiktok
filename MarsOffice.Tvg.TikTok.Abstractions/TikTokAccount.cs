@@ -4,8 +4,8 @@ namespace MarsOffice.Tvg.TikTok.Abstractions
     {
         public string UserId { get; set; }
         public string AccountId { get; set; }
-        public string Username { get; set; }
-        public string Email { get; set; }
+        public string Name { get; set; }
+        public string AvatarUrl { get; set; }
         public string AuthCode { get; set; }
     }
 }

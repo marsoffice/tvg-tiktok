@@ -86,7 +86,8 @@ namespace MarsOffice.Tvg.TikTok
                     NullValueHandling = NullValueHandling.Ignore
                 }).Data;
 
-                entity.Username = userResponse.display_name;
+                entity.Name = userResponse.display_name;
+                entity.AvatarUrl = userResponse.avatar_url;
 
                 var op = TableOperation.InsertOrMerge(entity);
                 await tikTokAccountsTable.ExecuteAsync(op);
