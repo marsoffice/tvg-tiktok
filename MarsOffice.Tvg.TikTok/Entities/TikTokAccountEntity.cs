@@ -11,9 +11,9 @@ namespace MarsOffice.Tvg.TikTok.Entities
         public string AccountId { get; set; }
         public string AuthCode { get; set; }
         public string AccessToken { get; set; }
-        public long? AccessTokenExp { get; set; }
+        public DateTimeOffset? AccessTokenExpAt { get; set; }
         public string RefreshToken { get; set; }
-        public long? RefreshTokenExp { get; set; }
+        public DateTimeOffset? RefreshTokenExpAt { get; set; }
         public DateTimeOffset? LastRefreshDate { get; set; }
     }
 }

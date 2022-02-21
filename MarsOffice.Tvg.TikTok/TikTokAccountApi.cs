@@ -67,14 +67,15 @@ namespace MarsOffice.Tvg.TikTok
                     ContractResolver = new CamelCasePropertyNamesContractResolver(),
                     NullValueHandling = NullValueHandling.Ignore
                 }).Data;
-
+            
+                entity.LastRefreshDate = DateTimeOffset.UtcNow;
                 entity.AccountId = objResponse.open_id;
                 entity.RowKey = entity.AccountId;
                 entity.AccessToken = objResponse.access_token;
-                entity.AccessTokenExp = objResponse.expires_in;
+                entity.AccessTokenExpAt = DateTimeOffset.UtcNow.AddSeconds(objResponse.expires_in);
                 entity.RefreshToken = objResponse.refresh_token;
-                entity.RefreshTokenExp = objResponse.refresh_expires_in;
-                entity.LastRefreshDate = DateTimeOffset.UtcNow;
+                entity.RefreshTokenExpAt = DateTimeOffset.UtcNow.AddSeconds(objResponse.refresh_expires_in);
+                
 
                 var op = TableOperation.InsertOrMerge(entity);
                 await tikTokAccountsTable.ExecuteAsync(op);
