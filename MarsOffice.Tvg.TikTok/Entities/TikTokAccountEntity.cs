@@ -9,6 +9,7 @@ namespace MarsOffice.Tvg.TikTok.Entities
         public string Name { get; set; }
         public string AvatarUrl { get; set; }
         public string AccountId { get; set; }
+        public string UnionId { get; set; }
         public string AuthCode { get; set; }
         public string AccessToken { get; set; }
         public DateTimeOffset? AccessTokenExpAt { get; set; }

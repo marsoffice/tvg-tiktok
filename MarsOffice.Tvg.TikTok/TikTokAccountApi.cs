@@ -101,8 +101,9 @@ namespace MarsOffice.Tvg.TikTok
                         NullValueHandling = NullValueHandling.Ignore
                     });
 
-                    entity.Name = userResponse.Data?.User?.display_name;
-                    entity.AvatarUrl = userResponse.Data?.User?.avatar_url;
+                    entity.Name = userResponse?.Data?.User?.display_name;
+                    entity.AvatarUrl = userResponse?.Data?.User?.avatar_url;
+                    entity.UnionId = userResponse?.Data?.User?.union_id;
                 }
                 else
                 {
