@@ -58,8 +58,9 @@ namespace MarsOffice.Tvg.TikTok
                 entity.ETag = "*";
                 entity.PartitionKey = entity.UserId;
 
+                var requestUrl = $"https://open-api.tiktok.com/oauth/access_token/?client_key={_config["ttclientkey"]}&client_secret={_config["ttclientsecret"]}&code={payload.AuthCode}&grant_type=authorization_code";
                 var request = new HttpRequestMessage(HttpMethod.Post,
-                    $"https://open-api.tiktok.com/oauth/access_token/?client_key={_config["ttclientkey"]}&client_secret={_config["ttclientsecret"]}&code={payload.AuthCode}&grant_type=authorization_code");
+                    requestUrl);
                 var getAuthTokenResponse = await _httpClient.SendAsync(request);
                 getAuthTokenResponse.EnsureSuccessStatusCode();
                 var jsonResponse = await getAuthTokenResponse.Content.ReadAsStringAsync();
@@ -70,7 +71,7 @@ namespace MarsOffice.Tvg.TikTok
                 }).Data;
                 if (objResponse.open_id == null)
                 {
-                    throw new Exception("Invalid account ID retrieved, full response: " + jsonResponse);
+                    throw new Exception("Invalid account ID retrieved, full response: " + jsonResponse + ", request URL: " + requestUrl);
                 }
                 entity.LastRefreshDate = DateTimeOffset.UtcNow;
                 entity.AccountId = objResponse.open_id;
