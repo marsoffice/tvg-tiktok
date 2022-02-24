@@ -104,17 +104,22 @@ namespace MarsOffice.Tvg.TikTok
                 {
                     throw new Exception("Video doesn't exist - no file");
                 }
+                
+                var bytes = new byte[blobRef.Properties.Length];
+                await blobRef.DownloadToByteArrayAsync(bytes, 0);
+                if (bytes.Length > 52428800)
+                {
+                    bytes = bytes.Take(52428800).ToArray();
+                }
+                var mfdc = new MultipartFormDataContent();
+                var byteContent = new ByteArrayContent(bytes);
+                byteContent.Headers.ContentType = MediaTypeHeaderValue.Parse("video/mp4");
+                mfdc.Add(byteContent, "video", "video.mp4");
 
                 foreach (var account in allAccounts)
                 {
                     try
                     {
-                        var bytes = new byte[blobRef.Properties.Length];
-                        await blobRef.DownloadToByteArrayAsync(bytes, 0);
-                        var mfdc = new MultipartFormDataContent();
-                        var byteContent = new ByteArrayContent(bytes);
-                        byteContent.Headers.ContentType = MediaTypeHeaderValue.Parse("video/mp4");
-                        mfdc.Add(byteContent, "video", "video.mp4");
                         var httpRequest = new HttpRequestMessage(HttpMethod.Post,
                             $"https://open-api.tiktok.com/share/video/upload/?open_id={account.AccountId}&access_token={account.AccessToken}")
                         {
