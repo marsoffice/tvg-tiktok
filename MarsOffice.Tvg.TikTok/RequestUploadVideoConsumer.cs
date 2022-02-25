@@ -61,7 +61,7 @@ namespace MarsOffice.Tvg.TikTok
                 var query = new TableQuery<TikTokAccountEntity>()
                     .Where(
                         TableQuery.CombineFilters(
-                            TableQuery.GenerateFilterCondition("AccessToken", QueryComparisons.NotEqual, null),
+                            TableQuery.GenerateFilterCondition("AccessToken", QueryComparisons.GreaterThan, ""),
                             TableOperators.And,
                             TableQuery.CombineFilters(
                                 TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, request.UserId),

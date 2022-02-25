@@ -33,7 +33,7 @@ namespace MarsOffice.Tvg.TikTok
             log.LogInformation($"Refresh TikTok Accounts function executed at: {DateTime.Now}");
 
             var query = new TableQuery<TikTokAccountEntity>().Where(
-                TableQuery.GenerateFilterCondition("RefreshToken", QueryComparisons.NotEqual, null)
+                TableQuery.GenerateFilterCondition("RefreshToken", QueryComparisons.GreaterThan, "")
             );
 
             var allAccounts = new List<TikTokAccountEntity>();
